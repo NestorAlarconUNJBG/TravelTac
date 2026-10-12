@@ -117,3 +117,35 @@ app.*.symbols
 !**/ios/**/default.perspectivev3
 !/packages/flutter_tools/test/data/dart_dependencies_test/**/.packages
 !/dev/ci/**/Gemfile.lock
+
+# Dependencias
+/node_modules
+/.pnp
+.pnp.js
+
+# Producción y compilación
+/build
+/dist
+
+# Tests
+/coverage
+
+# Entorno y credenciales (Variables de entorno)
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Editor y sistema operativo
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
