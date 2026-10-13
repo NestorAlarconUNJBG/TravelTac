@@ -285,3 +285,327 @@ input {
     grid-template-columns: 1fr;
   }
 }
+
+.admin-shell {
+  display: flex;
+  min-height: 100vh;
+  background:
+    radial-gradient(ellipse at 100% 0, rgb(193 138 53 / 9%), transparent 35%),
+    #f3ead8;
+}
+
+.admin-sidebar {
+  position: fixed;
+  z-index: 20;
+  display: flex;
+  width: 17rem;
+  height: 100vh;
+  flex-direction: column;
+  padding: 1.5rem 1rem 1rem;
+  border-right: 1px solid #5c382d;
+  background: #38291f;
+  color: #fbf5e7;
+}
+
+.admin-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  padding: 0.2rem 0.5rem 1.8rem;
+}
+
+.admin-brand-mark {
+  display: grid;
+  width: 2.6rem;
+  height: 2.6rem;
+  place-items: center;
+  border: 1px solid #c18a35;
+  border-radius: 0.75rem;
+  color: #e0b866;
+  font-size: 1.4rem;
+}
+
+.admin-brand strong,
+.admin-brand span,
+.admin-user-info strong,
+.admin-user-info span {
+  display: block;
+}
+
+.admin-brand strong {
+  color: #fff7e6;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1.2rem;
+  letter-spacing: 0.04em;
+}
+
+.admin-brand div > span {
+  margin-top: 0.2rem;
+  color: #c8b59b;
+  font-size: 0.77rem;
+}
+
+.admin-nav-label {
+  margin: 0.6rem 0 0.65rem 0.7rem;
+  color: #b39a7e;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+}
+
+.admin-nav {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.admin-nav-link {
+  display: flex;
+  min-height: 2.9rem;
+  align-items: center;
+  gap: 0.8rem;
+  padding: 0.65rem 0.75rem;
+  border: 1px solid transparent;
+  border-radius: 0.6rem;
+  color: #e1d2bc;
+  font-size: 0.88rem;
+  text-decoration: none;
+  transition: background-color 150ms ease, color 150ms ease, border-color 150ms ease;
+}
+
+.admin-nav-link:hover {
+  background: rgb(255 255 255 / 7%);
+  color: #fff8e9;
+}
+
+.admin-nav-link.active {
+  border-color: rgb(193 138 53 / 32%);
+  background: rgb(169 79 50 / 29%);
+  color: #f0c978;
+}
+
+.admin-sidebar-footer {
+  display: grid;
+  gap: 0.8rem;
+  margin-top: auto;
+  padding: 1rem 0.2rem 0;
+  border-top: 1px solid rgb(238 224 194 / 17%);
+}
+
+.admin-user {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.admin-user-avatar {
+  display: grid;
+  width: 2.35rem;
+  height: 2.35rem;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 50%;
+  background: #a94f32;
+  color: #fff6e4;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1.1rem;
+}
+
+.admin-user-info {
+  min-width: 0;
+}
+
+.admin-user-info strong {
+  overflow: hidden;
+  color: #fff5e3;
+  font-size: 0.81rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.admin-user-info span {
+  overflow: hidden;
+  margin-top: 0.2rem;
+  color: #c8b59b;
+  font-size: 0.72rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.admin-logout {
+  display: flex;
+  min-height: 2.6rem;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.55rem 0.7rem;
+  border: 1px solid transparent;
+  border-radius: 0.55rem;
+  background: transparent;
+  color: #e1d2bc;
+  cursor: pointer;
+  text-align: left;
+}
+
+.admin-logout:hover {
+  border-color: rgb(217 161 142 / 35%);
+  background: rgb(169 79 50 / 20%);
+  color: #f4b39b;
+}
+
+.admin-main {
+  min-width: 0;
+  min-height: 100vh;
+  flex: 1;
+  margin-left: 17rem;
+}
+
+.admin-topbar {
+  display: flex;
+  height: 4.25rem;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 2.25rem;
+  border-bottom: 1px solid #e2d3b8;
+  background: rgb(251 245 231 / 88%);
+  color: #6a5743;
+  font-size: 0.86rem;
+  font-weight: 600;
+}
+
+.admin-topbar-ornament {
+  color: var(--clay);
+  letter-spacing: 0.15em;
+}
+
+.admin-content {
+  width: min(100%, 78rem);
+  margin: 0 auto;
+  padding: 2.4rem;
+}
+
+.admin-empty-state {
+  display: grid;
+  min-height: 24rem;
+  justify-items: center;
+  align-content: center;
+  padding: 2rem;
+  border: 1px solid #dfd0b3;
+  border-radius: 1rem;
+  background:
+    radial-gradient(ellipse at center, rgb(255 252 243 / 95%), rgb(251 245 231 / 80%)),
+    repeating-linear-gradient(145deg, rgb(117 67 43 / 3%) 0 1px, transparent 1px 14px);
+  box-shadow: 0 12px 32px rgb(72 46 28 / 7%);
+  text-align: center;
+}
+
+.admin-empty-mark {
+  display: grid;
+  width: 4rem;
+  height: 4rem;
+  place-items: center;
+  border: 1px solid #d5b982;
+  border-radius: 1.2rem;
+  background: #f4e8ce;
+  color: var(--clay);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 2rem;
+}
+
+.admin-empty-state h2 {
+  margin: 1.2rem 0 0;
+  color: var(--clay-dark);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(1.4rem, 3vw, 1.8rem);
+}
+
+.admin-empty-state p {
+  margin: 0.6rem 0 0;
+  color: var(--muted);
+  font-size: 0.92rem;
+}
+
+.admin-menu-toggle,
+.admin-menu-close,
+.admin-backdrop {
+  display: none;
+}
+
+.admin-content .profile-page {
+  width: min(100%, 52rem);
+  min-height: 0;
+  padding: 0.25rem 0;
+}
+
+@media (max-width: 800px) {
+  .admin-sidebar {
+    width: min(18rem, 84vw);
+    transform: translateX(-100%);
+    transition: transform 180ms ease;
+  }
+
+  .admin-sidebar-open {
+    transform: translateX(0);
+  }
+
+  .admin-main {
+    margin-left: 0;
+  }
+
+  .admin-topbar {
+    justify-content: flex-start;
+    gap: 0.8rem;
+    padding: 0 1.1rem;
+  }
+
+  .admin-menu-toggle {
+    display: grid;
+    width: 2.4rem;
+    height: 2.4rem;
+    place-items: center;
+    border: 1px solid #d9c8a7;
+    border-radius: 0.5rem;
+    background: #fbf5e7;
+    color: var(--clay-dark);
+    cursor: pointer;
+  }
+
+  .admin-menu-close {
+    display: grid;
+    width: 2rem;
+    height: 2rem;
+    flex: 0 0 auto;
+    place-items: center;
+    margin-left: auto;
+    border: 0;
+    border-radius: 0.4rem;
+    background: transparent;
+    color: #e1d2bc;
+    cursor: pointer;
+  }
+
+  .admin-backdrop {
+    position: fixed;
+    z-index: 15;
+    display: block;
+    inset: 0;
+    border: 0;
+    background: rgb(33 23 18 / 45%);
+  }
+
+  .admin-content {
+    padding: 1.4rem;
+  }
+
+  .admin-empty-state {
+    min-height: 20rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}
