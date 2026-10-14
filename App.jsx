@@ -1,10 +1,13 @@
-import React from 'react';
+import React, { Suspense, lazy } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './src/context/AuthContext';
 import { AdminLayout } from './src/components/AdminLayout';
 import { ProtectedRoute } from './src/components/ProtectedRoute';
 import { LoginPage } from './src/features/auth/LoginPage';
 import { ProfilePage } from './src/features/auth/ProfilePage';
+
+const MultimediaPage = lazy(() => import('./src/features/multimedia/MultimediaPage')
+  .then(({ MultimediaPage: page }) => ({ default: page })));
 
 export default function App() {
   return (
@@ -19,7 +22,14 @@ export default function App() {
             <Route element={<AdminLayout />}>
               <Route index element={<Navigate to="pois" replace />} />
               <Route path="pois" element={<AdminSection title="Puntos de interés" />} />
-              <Route path="multimedia" element={<AdminSection title="Multimedia y audioguías" />} />
+              <Route
+                path="multimedia"
+                element={(
+                  <Suspense fallback={<div className="multimedia-loading" role="status">Cargando módulo multimedia...</div>}>
+                    <MultimediaPage />
+                  </Suspense>
+                )}
+              />
               <Route path="auditoria" element={<AdminSection title="Auditoría y Bitácora" />} />
               <Route path="perfil" element={<ProfilePage />} />
             </Route>
