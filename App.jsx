@@ -5,6 +5,7 @@ import { AdminLayout } from './src/components/AdminLayout';
 import { ProtectedRoute } from './src/components/ProtectedRoute';
 import { LoginPage } from './src/features/auth/LoginPage';
 import { ProfilePage } from './src/features/auth/ProfilePage';
+import { AuditPage } from './src/features/audit/AuditPage';
 
 const MultimediaPage = lazy(() => import('./src/features/multimedia/MultimediaPage')
   .then(({ MultimediaPage: page }) => ({ default: page })));
@@ -30,7 +31,7 @@ export default function App() {
                   </Suspense>
                 )}
               />
-              <Route path="auditoria" element={<AdminSection title="Auditoría y Bitácora" />} />
+              <Route path="auditoria" element={<AuditPage />} />
               <Route path="perfil" element={<ProfilePage />} />
             </Route>
           </Route>
