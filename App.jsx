@@ -5,10 +5,11 @@ import { AdminLayout } from './src/components/AdminLayout';
 import { ProtectedRoute } from './src/components/ProtectedRoute';
 import { LoginPage } from './src/features/auth/LoginPage';
 import { ProfilePage } from './src/features/auth/ProfilePage';
-import { AuditPage } from './src/features/audit/AuditPage';
 
 const MultimediaPage = lazy(() => import('./src/features/multimedia/MultimediaPage')
   .then(({ MultimediaPage: page }) => ({ default: page })));
+const AuditPage = lazy(() => import('./src/features/audit/AuditPage')
+  .then(({ AuditPage: page }) => ({ default: page })));
 
 export default function App() {
   return (
@@ -31,7 +32,14 @@ export default function App() {
                   </Suspense>
                 )}
               />
-              <Route path="auditoria" element={<AuditPage />} />
+              <Route
+                path="auditoria"
+                element={(
+                  <Suspense fallback={<div className="audit-empty" role="status">Cargando auditoría...</div>}>
+                    <AuditPage />
+                  </Suspense>
+                )}
+              />
               <Route path="perfil" element={<ProfilePage />} />
             </Route>
           </Route>

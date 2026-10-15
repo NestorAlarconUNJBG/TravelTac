@@ -62,6 +62,8 @@ export const AuditPage = () => {
   const [page, setPage] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState('');
+  const [copyMessage, setCopyMessage] = useState('');
+  const [isCopying, setIsCopying] = useState(false);
 
   const loadEntries = useCallback(async () => {
     setIsLoading(true);
@@ -123,6 +125,37 @@ export const AuditPage = () => {
     setPage(0);
   };
 
+  const handleCopyVisibleEntries = async () => {
+    if (!entries.length || isCopying) return;
+
+    const clipboardContent = JSON.stringify(entries.map((entry) => {
+      const admin = admins.find((item) => item.id === entry.usuario_id);
+      return {
+        'Fecha y hora': formatDate(entry.fecha_hora),
+        Administrador: admin?.nombre_completo || admin?.correo
+          || (entry.usuario_id ? `Usuario #${entry.usuario_id}` : 'Sistema / no identificado'),
+        Acción: ACTION_LABELS[entry.accion] || entry.accion,
+        Sección: AUDITED_TABLES.find(([value]) => value === entry.tabla_afectada)?.[1]
+          || entry.tabla_afectada,
+        Registro: formatRecordId(entry),
+        Detalles: entry.detalles_cambio,
+      };
+    }), null, 2);
+
+    setIsCopying(true);
+    setCopyMessage('');
+    try {
+      await navigator.clipboard.writeText(clipboardContent);
+      setCopyMessage(`${entries.length} ${entries.length === 1 ? 'registro copiado' : 'registros copiados'} al portapapeles.`);
+    } catch (error) {
+      setCopyMessage(error.message
+        ? `No se pudo copiar al portapapeles: ${error.message}`
+        : 'No se pudo copiar al portapapeles. Verifica los permisos del navegador.');
+    } finally {
+      setIsCopying(false);
+    }
+  };
+
   const pageCount = Math.max(1, Math.ceil(totalCount / PAGE_SIZE));
 
   return (
@@ -133,12 +166,27 @@ export const AuditPage = () => {
           <h1 id="audit-title">Auditoría y bitácora</h1>
           <p>Consulta las acciones realizadas sobre el contenido de TravelTac.</p>
         </div>
-        <span className="audit-header-icon" aria-hidden="true">
-          <ClipboardList size={25} />
-        </span>
+        <button
+          className="audit-header-icon"
+          type="button"
+          onClick={handleCopyVisibleEntries}
+          disabled={isLoading || entries.length === 0 || isCopying}
+          aria-label="Copiar las bitácoras visibles al portapapeles"
+          title="Copiar bitácoras visibles"
+        >
+          {isCopying ? <LoaderCircle size={22} className="audit-spinner" /> : <ClipboardList size={25} />}
+        </button>
       </header>
 
       {errorMessage && <div className="feedback-message feedback-error" role="alert">{errorMessage}</div>}
+      {copyMessage && (
+        <div
+          className={`feedback-message ${copyMessage.startsWith('No se pudo') ? 'feedback-error' : 'feedback-success'}`}
+          role={copyMessage.startsWith('No se pudo') ? 'alert' : 'status'}
+        >
+          {copyMessage}
+        </div>
+      )}
 
       <section className="audit-filters" aria-label="Filtros de auditoría">
         <label>

@@ -1118,6 +1118,24 @@ input {
   border-radius: 1rem;
   background: #f4e8ce;
   color: var(--clay);
+  cursor: pointer;
+  transition: background-color 150ms ease, border-color 150ms ease, transform 150ms ease;
+}
+
+.audit-header-icon:hover:not(:disabled) {
+  border-color: var(--clay);
+  background: #eee0c2;
+  transform: translateY(-1px);
+}
+
+.audit-header-icon:focus-visible {
+  outline: 3px solid rgb(193 138 53 / 55%);
+  outline-offset: 3px;
+}
+
+.audit-header-icon:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
 }
 
 .audit-filters,
@@ -1419,7 +1437,8 @@ input {
 
 @media (max-width: 480px) {
   .audit-header-icon {
-    display: none;
+    width: 2.8rem;
+    height: 2.8rem;
   }
 
   .audit-filters {
