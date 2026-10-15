@@ -23,7 +23,7 @@ export const ProfilePage = () => {
           institucion: institucion
         })
         .eq('id', adminProfile.id)
-        .select()
+        .select('id, nombre_completo, correo, rol, institucion, estado')
         .single();
 
       if (error) throw error;

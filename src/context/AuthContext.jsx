@@ -13,7 +13,7 @@ export const AuthProvider = ({ children }) => {
     try {
       const { data, error } = await supabase
         .from('usuarios_admin')
-        .select('*')
+        .select('id, nombre_completo, correo, rol, institucion, estado')
         .eq('correo', email)
         .single();
 
