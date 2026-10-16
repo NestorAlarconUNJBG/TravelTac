@@ -10,6 +10,8 @@ const MultimediaPage = lazy(() => import('./src/features/multimedia/MultimediaPa
   .then(({ MultimediaPage: page }) => ({ default: page })));
 const AuditPage = lazy(() => import('./src/features/audit/AuditPage')
   .then(({ AuditPage: page }) => ({ default: page })));
+const PoisPage = lazy(() => import('./src/features/pois/PoisPage')
+  .then(({ PoisPage: page }) => ({ default: page })));
 
 export default function App() {
   return (
@@ -23,7 +25,14 @@ export default function App() {
           <Route path="/admin" element={<ProtectedRoute />}>
             <Route element={<AdminLayout />}>
               <Route index element={<Navigate to="pois" replace />} />
-              <Route path="pois" element={<AdminSection title="Puntos de interés" />} />
+              <Route
+                path="pois"
+                element={(
+                  <Suspense fallback={<div className="pois-loading" role="status">Cargando puntos de interés...</div>}>
+                    <PoisPage />
+                  </Suspense>
+                )}
+              />
               <Route
                 path="multimedia"
                 element={(
@@ -51,11 +60,3 @@ export default function App() {
     </BrowserRouter>
   );
 }
-
-const AdminSection = ({ title }) => (
-  <section className="admin-empty-state" aria-labelledby="admin-section-title">
-    <div className="admin-empty-mark" aria-hidden="true">◇</div>
-    <h2 id="admin-section-title">{title}</h2>
-    <p>Esta sección estará disponible próximamente.</p>
-  </section>
-);

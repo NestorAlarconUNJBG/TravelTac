@@ -1463,3 +1463,486 @@ input {
     grid-template-columns: 6rem minmax(0, 1fr);
   }
 }
+
+.pois-page {
+  display: grid;
+  gap: 1.35rem;
+}
+
+.pois-header,
+.pois-list-heading,
+.pois-form-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.pois-header {
+  padding: 0.2rem 0 0.5rem;
+}
+
+.pois-eyebrow {
+  margin: 0 0 0.45rem;
+  color: #9b7041;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+}
+
+.pois-header h1 {
+  margin: 0;
+  color: var(--clay-dark);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(1.55rem, 3vw, 2rem);
+}
+
+.pois-intro {
+  margin: 0.55rem 0 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.pois-header-mark,
+.pois-form-icon,
+.pois-card-mark {
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 1px solid #d6c197;
+  background: #f4e8ce;
+  color: var(--clay);
+}
+
+.pois-header-mark {
+  width: 3.4rem;
+  height: 3.4rem;
+  border-radius: 1rem;
+}
+
+.pois-workspace {
+  display: grid;
+  grid-template-columns: minmax(17rem, 0.78fr) minmax(0, 1.35fr);
+  align-items: start;
+  gap: 1.15rem;
+}
+
+.pois-list-panel,
+.pois-form-panel {
+  min-width: 0;
+  padding: 1.2rem;
+  border: 1px solid #dfd0b3;
+  border-radius: 0.9rem;
+  background: rgb(251 245 231 / 92%);
+  box-shadow: 0 8px 24px rgb(72 46 28 / 6%);
+}
+
+.pois-list-heading {
+  margin-bottom: 1rem;
+}
+
+.pois-list-heading h2,
+.pois-form-heading h2 {
+  margin: 0;
+  color: #51392a;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1.12rem;
+}
+
+.pois-list-heading p,
+.pois-form-heading p {
+  margin: 0.25rem 0 0;
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+
+.pois-icon-button {
+  display: grid;
+  width: 2.35rem;
+  height: 2.35rem;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 1px solid #d8c7a7;
+  border-radius: 0.55rem;
+  background: #fffdf7;
+  color: var(--clay-dark);
+  cursor: pointer;
+}
+
+.pois-icon-button:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+
+.pois-search {
+  display: flex;
+  min-height: 2.65rem;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0 0.7rem;
+  border: 1px solid #cbb894;
+  border-radius: 0.5rem;
+  background: #fffdf7;
+  color: #98724b;
+}
+
+.pois-search:focus-within {
+  border-color: var(--clay);
+  box-shadow: 0 0 0 3px rgb(169 79 50 / 14%);
+}
+
+.pois-search input {
+  width: 100%;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--charcoal);
+  font: inherit;
+  font-size: 0.8rem;
+}
+
+.pois-list {
+  display: grid;
+  gap: 0.75rem;
+  max-height: 60rem;
+  overflow-y: auto;
+  margin-top: 0.9rem;
+  padding-right: 0.15rem;
+}
+
+.pois-card {
+  min-width: 0;
+  padding: 0.85rem;
+  border: 1px solid #e2d4bd;
+  border-radius: 0.65rem;
+  background: #fffdf7;
+}
+
+.pois-card-active {
+  border-color: #b76a4d;
+  box-shadow: 0 0 0 2px rgb(169 79 50 / 10%);
+}
+
+.pois-card-heading,
+.pois-card-title,
+.pois-card-actions,
+.pois-card-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.pois-card-heading {
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.pois-card-title {
+  min-width: 0;
+  align-items: flex-start;
+}
+
+.pois-card-mark {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 0.55rem;
+}
+
+.pois-card-title h3 {
+  overflow: hidden;
+  margin: 0;
+  color: #51392a;
+  font-size: 0.88rem;
+  text-overflow: ellipsis;
+}
+
+.pois-card-title > div {
+  min-width: 0;
+}
+
+.pois-card-title span:not(.pois-card-mark) {
+  display: block;
+  margin-top: 0.2rem;
+  color: var(--muted);
+  font-size: 0.68rem;
+}
+
+.pois-status {
+  flex: 0 0 auto;
+  padding: 0.25rem 0.45rem;
+  border-radius: 999px;
+  background: #f2ead8;
+  color: #755b32;
+  font-size: 0.63rem;
+  font-weight: 800;
+  text-transform: capitalize;
+}
+
+.pois-status-publicado {
+  background: #e7eddc;
+  color: #52633b;
+}
+
+.pois-card-description {
+  display: -webkit-box;
+  overflow: hidden;
+  margin: 0.7rem 0;
+  color: #675642;
+  font-size: 0.78rem;
+  line-height: 1.45;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.pois-card-meta {
+  flex-wrap: wrap;
+  justify-content: space-between;
+  color: var(--muted);
+  font-size: 0.68rem;
+}
+
+.pois-card-actions {
+  justify-content: flex-end;
+  margin-top: 0.75rem;
+  padding-top: 0.65rem;
+  border-top: 1px solid #eee5d5;
+}
+
+.pois-card-actions button {
+  display: inline-flex;
+  min-height: 2rem;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.55rem;
+  border: 0;
+  border-radius: 0.4rem;
+  background: transparent;
+  color: #654631;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.pois-card-actions button:hover:not(:disabled) {
+  background: #f3ead9;
+}
+
+.pois-card-actions .pois-delete-button {
+  color: #93452f;
+}
+
+.pois-card-actions button:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+
+.pois-form-heading {
+  justify-content: flex-start;
+  margin-bottom: 1.1rem;
+}
+
+.pois-form-heading > div {
+  flex: 1;
+}
+
+.pois-form-icon {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 0.7rem;
+}
+
+.pois-form {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.pois-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.8rem;
+}
+
+.pois-field {
+  display: grid;
+  min-width: 0;
+  gap: 0.35rem;
+  color: #594333;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.pois-field b {
+  color: var(--clay);
+}
+
+.pois-field input,
+.pois-field textarea,
+.pois-field select {
+  width: 100%;
+  min-height: 2.55rem;
+  padding: 0.55rem 0.65rem;
+  border: 1px solid #cbb894;
+  border-radius: 0.5rem;
+  outline: none;
+  background: #fffdf7;
+  color: var(--charcoal);
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 400;
+}
+
+.pois-field textarea {
+  min-height: 5rem;
+  resize: vertical;
+  line-height: 1.45;
+}
+
+.pois-field textarea[name="historia_completa"] {
+  min-height: 7rem;
+}
+
+.pois-field input:focus,
+.pois-field textarea:focus,
+.pois-field select:focus {
+  border-color: var(--clay);
+  box-shadow: 0 0 0 3px rgb(169 79 50 / 14%);
+}
+
+.poi-map-wrap {
+  min-width: 0;
+}
+
+.poi-map {
+  z-index: 0;
+  width: 100%;
+  height: 19rem;
+  border: 1px solid #d5c4a3;
+  border-radius: 0.65rem;
+  background: #e9e1d2;
+}
+
+.poi-map-hint {
+  margin: 0.45rem 0 0;
+  color: var(--muted);
+  font-size: 0.72rem;
+}
+
+.poi-map-marker {
+  border: 0;
+  background: transparent;
+}
+
+.poi-map-marker span {
+  display: block;
+  width: 1.25rem;
+  height: 1.25rem;
+  border: 3px solid #fffdf7;
+  border-radius: 50% 50% 50% 0;
+  background: var(--clay);
+  box-shadow: 0 2px 7px rgb(43 29 19 / 45%);
+  transform: rotate(-45deg);
+}
+
+.pois-form-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.65rem;
+}
+
+.pois-form-actions .primary-button {
+  min-width: 10rem;
+  font-size: 0.82rem;
+}
+
+.pois-secondary-button {
+  min-height: 2.8rem;
+  padding: 0.6rem 0.9rem;
+  border: 1px solid #cbb894;
+  border-radius: 0.55rem;
+  background: #fffdf7;
+  color: #654631;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.pois-secondary-button:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+
+.pois-empty,
+.pois-loading {
+  display: flex;
+  min-height: 8rem;
+  align-items: center;
+  justify-content: center;
+  gap: 0.65rem;
+  color: var(--muted);
+  text-align: center;
+  font-size: 0.82rem;
+}
+
+.pois-empty p {
+  max-width: 18rem;
+  margin: 0;
+}
+
+.pois-spinner {
+  flex: 0 0 auto;
+  animation: pois-spin 900ms linear infinite;
+}
+
+@keyframes pois-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (max-width: 1000px) {
+  .pois-workspace {
+    grid-template-columns: minmax(15rem, 0.8fr) minmax(0, 1.2fr);
+  }
+}
+
+@media (max-width: 800px) {
+  .pois-workspace {
+    grid-template-columns: 1fr;
+  }
+
+  .pois-list {
+    max-height: 32rem;
+  }
+}
+
+@media (max-width: 560px) {
+  .pois-header-mark {
+    display: none;
+  }
+
+  .pois-list-panel,
+  .pois-form-panel {
+    padding: 0.9rem;
+  }
+
+  .pois-form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .poi-map {
+    height: 16rem;
+  }
+
+  .pois-form-actions {
+    flex-direction: column-reverse;
+  }
+
+  .pois-form-actions .primary-button,
+  .pois-form-actions .pois-secondary-button {
+    width: 100%;
+  }
+}
