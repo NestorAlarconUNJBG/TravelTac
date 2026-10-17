@@ -6,6 +6,7 @@ import {
   LogOut,
   MapPin,
   Menu,
+  Tags,
   UserRound,
   X,
 } from 'lucide-react';
@@ -13,6 +14,7 @@ import { useAuth } from '../context/AuthContext';
 
 const sections = [
   { to: '/admin/pois', label: 'Puntos de interés', icon: MapPin },
+  { to: '/admin/categorias', label: 'Categorías', icon: Tags },
   { to: '/admin/multimedia', label: 'Multimedia y audioguías', icon: AudioLines },
   { to: '/admin/auditoria', label: 'Auditoría y Bitácora', icon: ClipboardList },
   { to: '/admin/perfil', label: 'Perfil', icon: UserRound },

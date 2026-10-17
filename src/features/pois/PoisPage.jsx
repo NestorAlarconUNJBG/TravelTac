@@ -11,8 +11,10 @@ import {
 } from 'lucide-react';
 import { PoiMap } from './PoiMap';
 import { createPoi, deletePoi, listPois, updatePoi } from './poiService';
+import { listCategories } from '../categories/categoryService';
 
 const EMPTY_FORM = {
+  categoria_id: '',
   codigo_identificador: '',
   nombre: '',
   descripcion_corta: '',
@@ -31,14 +33,29 @@ const formatCoordinate = (value) => (
 
 export const PoisPage = () => {
   const [pois, setPois] = useState([]);
+  const [categories, setCategories] = useState([]);
   const [search, setSearch] = useState('');
   const [form, setForm] = useState(EMPTY_FORM);
   const [editingId, setEditingId] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [deletingId, setDeletingId] = useState(null);
+  const [isLoadingCategories, setIsLoadingCategories] = useState(true);
+  const [categoryError, setCategoryError] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
+
+  const loadCategories = useCallback(async () => {
+    setIsLoadingCategories(true);
+    setCategoryError('');
+    try {
+      setCategories(await listCategories());
+    } catch (error) {
+      setCategoryError(error.message || 'No se pudieron cargar las categorías.');
+    } finally {
+      setIsLoadingCategories(false);
+    }
+  }, []);
 
   const loadPois = useCallback(async () => {
     setIsLoading(true);
@@ -55,6 +72,10 @@ export const PoisPage = () => {
   useEffect(() => {
     loadPois();
   }, [loadPois]);
+
+  useEffect(() => {
+    loadCategories();
+  }, [loadCategories]);
 
   const visiblePois = useMemo(() => {
     const normalizedSearch = search.trim().toLocaleLowerCase();
@@ -77,6 +98,9 @@ export const PoisPage = () => {
   const startEditing = (poi) => {
     setEditingId(poi.id);
     setForm({
+      categoria_id: poi.categoria_id === null || poi.categoria_id === undefined
+        ? ''
+        : String(poi.categoria_id),
       codigo_identificador: poi.codigo_identificador || '',
       nombre: poi.nombre || '',
       descripcion_corta: poi.descripcion_corta || '',
@@ -177,6 +201,14 @@ export const PoisPage = () => {
 
       {errorMessage && <div className="feedback-message feedback-error" role="alert">{errorMessage}</div>}
       {successMessage && <div className="feedback-message feedback-success" role="status">{successMessage}</div>}
+      {categoryError && (
+        <div className="feedback-message feedback-error" role="alert">
+          No se pudieron cargar las categorías para el formulario: {categoryError}
+          <button className="pois-retry-button" type="button" onClick={loadCategories} disabled={isLoadingCategories}>
+            {isLoadingCategories ? 'Cargando...' : 'Reintentar'}
+          </button>
+        </div>
+      )}
 
       <div className="pois-workspace">
         <section className="pois-list-panel" aria-labelledby="pois-list-title">
@@ -295,6 +327,24 @@ export const PoisPage = () => {
 
           <form className="pois-form" onSubmit={handleSubmit}>
             <div className="pois-form-grid">
+              <label className="pois-field poi-category-field">
+                <span>Categoría</span>
+                <select
+                  name="categoria_id"
+                  value={form.categoria_id}
+                  onChange={handleFieldChange}
+                  disabled={isLoadingCategories || Boolean(categoryError)}
+                >
+                  <option value="">
+                    {isLoadingCategories ? 'Cargando categorías...' : 'Sin categoría'}
+                  </option>
+                  {categories.map((category) => (
+                    <option key={category.id} value={String(category.id)}>
+                      {category.nombre}
+                    </option>
+                  ))}
+                </select>
+              </label>
               <label className="pois-field">
                 <span>Código identificador <b>*</b></span>
                 <input

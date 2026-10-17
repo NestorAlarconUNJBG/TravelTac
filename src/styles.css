@@ -1649,6 +1649,12 @@ input {
   border-radius: 0.55rem;
 }
 
+.category-symbol-help {
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 400;
+}
+
 .pois-card-title h3 {
   overflow: hidden;
   margin: 0;
@@ -1762,6 +1768,27 @@ input {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 0.8rem;
+}
+
+.poi-category-field {
+  grid-column: 1 / -1;
+}
+
+.pois-retry-button {
+  margin-left: 0.65rem;
+  padding: 0.25rem 0.45rem;
+  border: 1px solid currentColor;
+  border-radius: 0.35rem;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 700;
+}
+
+.pois-retry-button:disabled {
+  cursor: wait;
+  opacity: 0.65;
 }
 
 .pois-field {
