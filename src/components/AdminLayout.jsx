@@ -7,6 +7,7 @@ import {
   MapPin,
   Menu,
   Tags,
+  UsersRound,
   UserRound,
   X,
 } from 'lucide-react';
@@ -15,6 +16,7 @@ import { useAuth } from '../context/AuthContext';
 const sections = [
   { to: '/admin/pois', label: 'Puntos de interés', icon: MapPin },
   { to: '/admin/categorias', label: 'Categorías', icon: Tags },
+  { to: '/admin/usuarios', label: 'Usuarios', icon: UsersRound, superAdminOnly: true },
   { to: '/admin/multimedia', label: 'Multimedia y audioguías', icon: AudioLines },
   { to: '/admin/auditoria', label: 'Auditoría y Bitácora', icon: ClipboardList },
   { to: '/admin/perfil', label: 'Perfil', icon: UserRound },
@@ -59,7 +61,9 @@ export const AdminLayout = () => {
 
         <p className="admin-nav-label">GESTIÓN</p>
         <nav className="admin-nav" aria-label="Secciones administrativas">
-          {sections.map(({ to, label, icon: Icon }) => (
+          {sections
+            .filter(({ superAdminOnly }) => !superAdminOnly || adminProfile?.rol === 'superadmin')
+            .map(({ to, label, icon: Icon }) => (
             <NavLink
               key={to}
               to={to}
@@ -69,7 +73,7 @@ export const AdminLayout = () => {
               <Icon size={19} strokeWidth={1.8} aria-hidden="true" />
               <span>{label}</span>
             </NavLink>
-          ))}
+            ))}
         </nav>
 
         <div className="admin-sidebar-footer">
