@@ -2,6 +2,7 @@ import { supabase } from '../../config/supabaseClient';
 
 const POI_FIELDS = [
   'id',
+  'categoria_id',
   'codigo_identificador',
   'nombre',
   'descripcion_corta',
@@ -32,6 +33,7 @@ const toPoiPayload = (poi) => {
 
   return {
     codigo_identificador: poi.codigo_identificador.trim(),
+    categoria_id: poi.categoria_id || null,
     nombre: poi.nombre.trim(),
     descripcion_corta: poi.descripcion_corta.trim(),
     historia_completa: poi.historia_completa.trim(),

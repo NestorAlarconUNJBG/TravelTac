@@ -1770,6 +1770,27 @@ input {
   gap: 0.8rem;
 }
 
+.poi-category-field {
+  grid-column: 1 / -1;
+}
+
+.pois-retry-button {
+  margin-left: 0.65rem;
+  padding: 0.25rem 0.45rem;
+  border: 1px solid currentColor;
+  border-radius: 0.35rem;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 700;
+}
+
+.pois-retry-button:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+
 .pois-field {
   display: grid;
   min-width: 0;
