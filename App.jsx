@@ -12,6 +12,8 @@ const AuditPage = lazy(() => import('./src/features/audit/AuditPage')
   .then(({ AuditPage: page }) => ({ default: page })));
 const PoisPage = lazy(() => import('./src/features/pois/PoisPage')
   .then(({ PoisPage: page }) => ({ default: page })));
+const CategoriesPage = lazy(() => import('./src/features/categories/CategoriesPage')
+  .then(({ CategoriesPage: page }) => ({ default: page })));
 
 export default function App() {
   return (
@@ -30,6 +32,14 @@ export default function App() {
                 element={(
                   <Suspense fallback={<div className="pois-loading" role="status">Cargando puntos de interés...</div>}>
                     <PoisPage />
+                  </Suspense>
+                )}
+              />
+              <Route
+                path="categorias"
+                element={(
+                  <Suspense fallback={<div className="pois-loading" role="status">Cargando categorías...</div>}>
+                    <CategoriesPage />
                   </Suspense>
                 )}
               />

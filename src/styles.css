@@ -1649,6 +1649,12 @@ input {
   border-radius: 0.55rem;
 }
 
+.category-symbol-help {
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 400;
+}
+
 .pois-card-title h3 {
   overflow: hidden;
   margin: 0;
