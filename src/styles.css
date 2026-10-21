@@ -1655,6 +1655,61 @@ input {
   font-weight: 400;
 }
 
+.users-access-note {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.8rem 0.9rem;
+  border: 1px solid #d6c197;
+  border-radius: 0.6rem;
+  background: #f4e8ce;
+  color: #68482f;
+}
+
+.users-access-note svg {
+  flex: 0 0 auto;
+  color: var(--clay);
+}
+
+.users-access-note p {
+  margin: 0;
+  font-size: 0.82rem;
+}
+
+.user-status {
+  flex: 0 0 auto;
+  padding: 0.25rem 0.5rem;
+  border-radius: 999px;
+  background: #f2e0d7;
+  color: #8a432e;
+  font-size: 0.65rem;
+  font-weight: 800;
+  text-transform: capitalize;
+}
+
+.user-status.is-active {
+  background: #e7eddc;
+  color: #52633b;
+}
+
+.user-role-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: #755b32;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: capitalize;
+}
+
+.user-self-note {
+  margin: 0.7rem 0 0;
+  padding-top: 0.6rem;
+  border-top: 1px solid #eee5d5;
+  color: var(--muted);
+  font-size: 0.7rem;
+}
+
 .pois-card-title h3 {
   overflow: hidden;
   margin: 0;

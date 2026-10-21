@@ -9,7 +9,7 @@ export const ProtectedRoute = () => {
     return <div className="flex h-screen items-center justify-center loading-screen">Cargando TravelTac...</div>;
   }
 
-  if (!authUser || !adminProfile) {
+  if (!authUser || !adminProfile || adminProfile.estado !== 'activo') {
     return <Navigate to="/login" replace />;
   }
 
