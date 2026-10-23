@@ -6,9 +6,11 @@ import {
   ImagePlus,
   LoaderCircle,
   Music2,
+  Pencil,
   Search,
   Trash2,
   Upload,
+  X,
 } from 'lucide-react';
 import { supabase } from '../../config/supabaseClient';
 import { useAuth } from '../../context/AuthContext';
@@ -102,8 +104,13 @@ export const MultimediaPage = () => {
   const [search, setSearch] = useState('');
   const [title, setTitle] = useState('');
   const [selectedFile, setSelectedFile] = useState(null);
+  const [editingItem, setEditingItem] = useState(null);
+  const [editTitle, setEditTitle] = useState('');
+  const [editPointId, setEditPointId] = useState('');
+  const [replacementFile, setReplacementFile] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isUploading, setIsUploading] = useState(false);
+  const [isSavingEdit, setIsSavingEdit] = useState(false);
   const [deletingId, setDeletingId] = useState(null);
   const [errorMessage, setErrorMessage] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
@@ -264,6 +271,139 @@ export const MultimediaPage = () => {
     }
   };
 
+  const startEditing = (item) => {
+    setEditingItem(item);
+    setEditTitle(item.titulo || '');
+    setEditPointId(String(item.poi_id));
+    setReplacementFile(null);
+    setErrorMessage('');
+    setSuccessMessage('');
+  };
+
+  const closeEditor = () => {
+    if (isSavingEdit) return;
+    setEditingItem(null);
+    setReplacementFile(null);
+  };
+
+  const handleReplacementChange = (event) => {
+    const file = event.target.files?.[0] || null;
+    setErrorMessage('');
+    setSuccessMessage('');
+
+    if (file && getFileType(file) !== editingItem?.tipo) {
+      setErrorMessage(
+        editingItem?.tipo === 'audio'
+          ? 'Reemplaza esta audioguía por un archivo MP3 o AAC.'
+          : 'Reemplaza esta imagen por un archivo JPG, PNG o WebP.',
+      );
+      setReplacementFile(null);
+      event.target.value = '';
+      return;
+    }
+    setReplacementFile(file);
+  };
+
+  const handleUpdateMedia = async (event) => {
+    event.preventDefault();
+    if (!editingItem || !editPointId) {
+      setErrorMessage('Selecciona un punto de interés para este archivo.');
+      return;
+    }
+
+    setIsSavingEdit(true);
+    setErrorMessage('');
+    setSuccessMessage('');
+    let replacementPath = '';
+
+    try {
+      let urlStorage = editingItem.url_storage;
+      let duration = editingItem.duracion_segundos;
+      let size = editingItem.tamano_bytes;
+
+      if (replacementFile) {
+        const extension = getExtension(replacementFile.name);
+        const objectPath = `${editPointId}/${crypto.randomUUID()}.${extension}`;
+        const { data: uploadedFile, error: uploadError } = await supabase.storage
+          .from(STORAGE_BUCKET)
+          .upload(objectPath, replacementFile, {
+            cacheControl: '3600',
+            contentType: getContentType(replacementFile),
+            upsert: false,
+          });
+        if (uploadError) throw uploadError;
+        replacementPath = uploadedFile.path;
+
+        const { data: publicUrlData } = supabase.storage
+          .from(STORAGE_BUCKET)
+          .getPublicUrl(replacementPath);
+        urlStorage = publicUrlData.publicUrl;
+        duration = editingItem.tipo === 'audio'
+          ? await readAudioDuration(replacementFile)
+          : null;
+        size = replacementFile.size;
+      }
+
+      const { data: updatedItem, error: updateError } = await supabase
+        .from('multimedia')
+        .update({
+          poi_id: editPointId,
+          titulo: editTitle.trim() || null,
+          url_storage: urlStorage,
+          duracion_segundos: duration,
+          tamano_bytes: size,
+        })
+        .eq('id', editingItem.id)
+        .select('id, poi_id, tipo, titulo, url_storage, duracion_segundos, tamano_bytes, subido_por')
+        .single();
+
+      if (updateError) {
+        if (replacementPath) {
+          const { error: cleanupError } = await supabase.storage
+            .from(STORAGE_BUCKET)
+            .remove([replacementPath]);
+          if (cleanupError) {
+            throw new Error(`${updateError.message} Además, no se pudo limpiar el archivo reemplazante: ${cleanupError.message}`);
+          }
+        }
+        throw updateError;
+      }
+
+      setMedia((currentMedia) => {
+        const remainingMedia = currentMedia.filter((item) => item.id !== updatedItem.id);
+        return String(updatedItem.poi_id) === String(selectedPointId)
+          ? [updatedItem, ...remainingMedia]
+          : remainingMedia;
+      });
+      setEditingItem(null);
+      setReplacementFile(null);
+
+      let cleanupWarning = '';
+      if (replacementPath) {
+        try {
+          const previousPath = getStoragePath(editingItem.url_storage);
+          const { error: removeError } = await supabase.storage
+            .from(STORAGE_BUCKET)
+            .remove([previousPath]);
+          if (removeError) {
+            throw new Error(`El archivo se actualizó, pero no se pudo borrar el anterior: ${removeError.message}`);
+          }
+        } catch (cleanupError) {
+          cleanupWarning = cleanupError.message || 'El archivo se actualizó, pero no se pudo borrar el anterior.';
+        }
+      }
+
+      setSuccessMessage(replacementPath
+        ? 'Archivo multimedia y contenido reemplazados correctamente.'
+        : 'Cambios guardados en el archivo multimedia.');
+      if (cleanupWarning) setErrorMessage(cleanupWarning);
+    } catch (error) {
+      setErrorMessage(error.message || 'No se pudieron guardar los cambios del archivo.');
+    } finally {
+      setIsSavingEdit(false);
+    }
+  };
+
   const handleDelete = async (item) => {
     const confirmed = window.confirm(`¿Eliminar "${item.titulo || 'este archivo'}"? Esta acción no se puede deshacer.`);
     if (!confirmed) return;
@@ -314,7 +454,7 @@ export const MultimediaPage = () => {
         <div className="multimedia-header-mark" aria-hidden="true"><AudioLines size={25} /></div>
       </header>
 
-      {errorMessage && <div className="feedback-message feedback-error" role="alert">{errorMessage}</div>}
+      {errorMessage && !editingItem && <div className="feedback-message feedback-error" role="alert">{errorMessage}</div>}
       {successMessage && <div className="feedback-message feedback-success" role="status">{successMessage}</div>}
 
       {isLoading ? (
@@ -344,7 +484,7 @@ export const MultimediaPage = () => {
                 <span>Punto de interés</span>
                 <select
                   value={selectedPointId}
-                  disabled={isUploading}
+                  disabled={isUploading || Boolean(editingItem)}
                   onChange={(event) => {
                     setSelectedPointId(event.target.value);
                     setSuccessMessage('');
@@ -463,10 +603,19 @@ export const MultimediaPage = () => {
                         {item.duracion_segundos && <span>{formatDuration(item.duracion_segundos)}</span>}
                       </div>
                       <button
+                        className="multimedia-edit"
+                        type="button"
+                        onClick={() => startEditing(item)}
+                        disabled={isSavingEdit || deletingId === item.id}
+                      >
+                        <Pencil size={16} />
+                        <span>Editar archivo</span>
+                      </button>
+                      <button
                         className="multimedia-delete"
                         type="button"
                         onClick={() => handleDelete(item)}
-                        disabled={deletingId === item.id}
+                        disabled={isSavingEdit || deletingId === item.id}
                         aria-label={`Eliminar ${item.titulo || 'archivo'}`}
                       >
                         {deletingId === item.id
@@ -481,6 +630,107 @@ export const MultimediaPage = () => {
             )}
           </section>
         </>
+      )}
+
+      {editingItem && (
+        <div className="multimedia-dialog-backdrop" onMouseDown={(event) => {
+          if (event.target === event.currentTarget) closeEditor();
+        }}>
+          <section
+            className="multimedia-editor"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="multimedia-editor-title"
+          >
+            <header className="multimedia-editor-heading">
+              <div>
+                <p className="multimedia-eyebrow">EDICIÓN MULTIMEDIA</p>
+                <h2 id="multimedia-editor-title">Modificar archivo</h2>
+              </div>
+              <button
+                className="pois-icon-button"
+                type="button"
+                onClick={closeEditor}
+                disabled={isSavingEdit}
+                aria-label="Cerrar edición"
+              >
+                <X size={18} />
+              </button>
+            </header>
+
+            {errorMessage && <div className="feedback-message feedback-error" role="alert">{errorMessage}</div>}
+
+            <form className="multimedia-editor-form" onSubmit={handleUpdateMedia}>
+              <label className="multimedia-field">
+                <span>Punto de interés</span>
+                <select
+                  value={editPointId}
+                  onChange={(event) => setEditPointId(event.target.value)}
+                  disabled={isSavingEdit}
+                  required
+                >
+                  {points.map((point) => (
+                    <option key={point.id} value={String(point.id)}>{point.nombre}</option>
+                  ))}
+                </select>
+              </label>
+
+              <label className="multimedia-field">
+                <span>Título del archivo</span>
+                <input
+                  type="text"
+                  value={editTitle}
+                  onChange={(event) => setEditTitle(event.target.value)}
+                  maxLength={150}
+                  placeholder="Título descriptivo"
+                  disabled={isSavingEdit}
+                />
+              </label>
+
+              <label className="multimedia-field multimedia-file-field">
+                <span>Reemplazar contenido (opcional)</span>
+                <input
+                  type="file"
+                  accept={editingItem.tipo === 'audio'
+                    ? '.mp3,.aac,audio/mpeg,audio/aac,audio/mp4'
+                    : '.jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp'}
+                  onChange={handleReplacementChange}
+                  disabled={isSavingEdit}
+                />
+                <small>
+                  {editingItem.tipo === 'audio'
+                    ? 'Selecciona un MP3 o AAC para sustituir la audioguía actual.'
+                    : 'Selecciona un JPG, PNG o WebP para sustituir la imagen actual.'}
+                </small>
+              </label>
+
+              {replacementFile && (
+                <div className="multimedia-selected-file">
+                  {editingItem.tipo === 'audio' ? <FileAudio size={18} /> : <FileImage size={18} />}
+                  <span>{replacementFile.name}</span>
+                  <small>{getFileSize(replacementFile.size)}</small>
+                </div>
+              )}
+
+              <div className="multimedia-editor-actions">
+                <button
+                  className="pois-secondary-button"
+                  type="button"
+                  onClick={closeEditor}
+                  disabled={isSavingEdit}
+                >
+                  Cancelar
+                </button>
+                <button className="primary-button" type="submit" disabled={isSavingEdit}>
+                  {isSavingEdit
+                    ? <LoaderCircle size={17} className="multimedia-spinner" />
+                    : <Pencil size={16} />}
+                  {isSavingEdit ? 'Guardando...' : 'Guardar cambios'}
+                </button>
+              </div>
+            </form>
+          </section>
+        </div>
       )}
     </section>
   );
