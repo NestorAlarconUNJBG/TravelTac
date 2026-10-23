@@ -4,6 +4,7 @@
 *.log
 *.pyc
 *.swp
+!traveltac_mobile/pubspec.lock
 .buildlog/
 .history
 

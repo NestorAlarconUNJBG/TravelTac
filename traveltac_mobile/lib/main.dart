@@ -1,7 +1,40 @@
-import 'package:flutter/material.dart';
+import 'dart:async';
 
-void main() {
-  runApp(const TravelTacApp());
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+
+import 'data/public_catalog_repository.dart';
+import 'models/poi.dart';
+
+export 'models/poi.dart';
+
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  const supabaseUrl = String.fromEnvironment('SUPABASE_URL');
+  const supabaseAnonKey = String.fromEnvironment('SUPABASE_ANON_KEY');
+  CatalogRepository? catalogRepository;
+  String? configurationError;
+
+  if (supabaseUrl.isEmpty || supabaseAnonKey.isEmpty) {
+    configurationError =
+        'Configura SUPABASE_URL y SUPABASE_ANON_KEY para cargar el catálogo.';
+  } else {
+    await Supabase.initialize(
+      url: supabaseUrl,
+      publishableKey: supabaseAnonKey,
+    );
+    catalogRepository = SupabaseCatalogRepository(Supabase.instance.client);
+  }
+
+  runApp(
+    TravelTacApp(
+      catalogRepository: catalogRepository,
+      catalogConfigurationError: configurationError,
+    ),
+  );
 }
 
 const _sand = Color(0xFFEEE0C2);
@@ -14,7 +47,14 @@ const _muted = Color(0xFF786858);
 const _line = Color(0xFFD9C8A7);
 
 class TravelTacApp extends StatelessWidget {
-  const TravelTacApp({super.key});
+  const TravelTacApp({
+    this.catalogRepository,
+    this.catalogConfigurationError,
+    super.key,
+  });
+
+  final CatalogRepository? catalogRepository;
+  final String? catalogConfigurationError;
 
   @override
   Widget build(BuildContext context) {
@@ -52,37 +92,17 @@ class TravelTacApp extends StatelessWidget {
           bodyMedium: TextStyle(color: _muted, height: 1.45),
         ),
       ),
-      home: const TravelTacHome(),
+      home: TravelTacHome(
+        catalogRepository: catalogRepository,
+        catalogConfigurationError: catalogConfigurationError,
+      ),
     );
   }
 }
 
-class Poi {
-  const Poi({
-    required this.name,
-    required this.category,
-    required this.location,
-    required this.description,
-    required this.icon,
-    required this.color,
-    required this.latitude,
-    required this.longitude,
-    this.featured = false,
-  });
-
-  final String name;
-  final String category;
-  final String location;
-  final String description;
-  final IconData icon;
-  final Color color;
-  final double latitude;
-  final double longitude;
-  final bool featured;
-}
-
 const _pois = [
   Poi(
+    id: 'sample-miculla',
     name: 'Complejo Arqueológico de Miculla',
     category: 'Arqueología',
     location: 'Pachía · 22 km de Tacna',
@@ -96,6 +116,7 @@ const _pois = [
     featured: true,
   ),
   Poi(
+    id: 'sample-alto-alianza',
     name: 'Monumento al Alto de la Alianza',
     category: 'Historia',
     location: 'Ciudad de Tacna',
@@ -108,6 +129,7 @@ const _pois = [
     longitude: -70.252,
   ),
   Poi(
+    id: 'sample-catedral',
     name: 'Catedral de Tacna',
     category: 'Arquitectura',
     location: 'Centro histórico · Tacna',
@@ -123,8 +145,51 @@ const _pois = [
 
 const _categories = ['Todos', 'Arqueología', 'Historia', 'Arquitectura'];
 
+List<Poi> filterPoisByProximity(
+  Iterable<Poi> pois, {
+  required double latitude,
+  required double longitude,
+  required double radiusKm,
+}) {
+  final nearby = pois.where((poi) {
+    return distanceToPoiKm(poi, latitude: latitude, longitude: longitude) <=
+        radiusKm;
+  }).toList();
+  nearby.sort(
+    (first, second) =>
+        distanceToPoiKm(
+          first,
+          latitude: latitude,
+          longitude: longitude,
+        ).compareTo(
+          distanceToPoiKm(second, latitude: latitude, longitude: longitude),
+        ),
+  );
+  return nearby;
+}
+
+double distanceToPoiKm(
+  Poi poi, {
+  required double latitude,
+  required double longitude,
+}) =>
+    Geolocator.distanceBetween(
+      latitude,
+      longitude,
+      poi.latitude,
+      poi.longitude,
+    ) /
+    1000;
+
 class TravelTacHome extends StatefulWidget {
-  const TravelTacHome({super.key});
+  const TravelTacHome({
+    this.catalogRepository,
+    this.catalogConfigurationError,
+    super.key,
+  });
+
+  final CatalogRepository? catalogRepository;
+  final String? catalogConfigurationError;
 
   @override
   State<TravelTacHome> createState() => _TravelTacHomeState();
@@ -179,6 +244,8 @@ class _TravelTacHomeState extends State<TravelTacHome> {
         onPoiTap: _openPoi,
       ),
       ExplorePage(
+        catalogRepository: widget.catalogRepository,
+        configurationError: widget.catalogConfigurationError,
         query: _query,
         category: _category,
         controller: _exploreController,
@@ -292,14 +359,14 @@ class HomePage extends StatelessWidget {
                         ),
                       ),
                       Text(
-                        'Tu guía de Miculla',
+                        'Tu guía de Tacna',
                         style: TextStyle(color: _muted, fontSize: 12),
                       ),
                     ],
                   ),
                   const Spacer(),
                   IconButton(
-                    tooltip: 'Explorar atractivos',
+                    tooltip: 'Explorar puntos de interés',
                     onPressed: onMap,
                     icon: const Icon(Icons.map_outlined, color: _clayDark),
                   ),
@@ -309,7 +376,7 @@ class HomePage extends StatelessWidget {
               Text('HOLA, VIAJERO', style: _eyebrowStyle),
               const SizedBox(height: 7),
               Text(
-                'Descubre Miculla',
+                'Descubre Tacna',
                 style: Theme.of(context).textTheme.headlineLarge,
               ),
               const SizedBox(height: 7),
@@ -356,7 +423,7 @@ class HomePage extends StatelessWidget {
               const SizedBox(height: 27),
               _SectionHeading(
                 title: 'Un lugar para empezar',
-                action: 'Ver atractivos',
+                action: 'Ver puntos de interés',
                 onAction: onExplore,
               ),
               const SizedBox(height: 13),
@@ -578,8 +645,10 @@ class _FeaturedPoiCard extends StatelessWidget {
   }
 }
 
-class ExplorePage extends StatelessWidget {
+class ExplorePage extends StatefulWidget {
   const ExplorePage({
+    required this.catalogRepository,
+    required this.configurationError,
     required this.query,
     required this.category,
     required this.controller,
@@ -589,6 +658,8 @@ class ExplorePage extends StatelessWidget {
     super.key,
   });
 
+  final CatalogRepository? catalogRepository;
+  final String? configurationError;
   final String query;
   final String category;
   final TextEditingController controller;
@@ -597,16 +668,160 @@ class ExplorePage extends StatelessWidget {
   final ValueChanged<Poi> onPoiTap;
 
   @override
+  State<ExplorePage> createState() => _ExplorePageState();
+}
+
+class _ExplorePageState extends State<ExplorePage> {
+  PublicCatalog? _catalog;
+  String? _catalogError;
+  bool _isLoadingCatalog = true;
+  Position? _currentPosition;
+  bool _isLoadingLocation = false;
+  bool _nearbyEnabled = false;
+  double _radiusKm = 25;
+  String? _locationError;
+
+  @override
+  void initState() {
+    super.initState();
+    _catalogError = widget.configurationError;
+    _loadCatalog();
+  }
+
+  Future<void> _loadCatalog() async {
+    final repository = widget.catalogRepository;
+    if (repository == null) {
+      setState(() => _isLoadingCatalog = false);
+      return;
+    }
+
+    setState(() {
+      _isLoadingCatalog = true;
+      _catalogError = null;
+    });
+    try {
+      final catalog = await repository.fetchCatalog();
+      if (!mounted) return;
+      setState(() {
+        _catalog = catalog;
+      });
+    } catch (error) {
+      if (!mounted) return;
+      setState(() {
+        _catalogError = 'No se pudo cargar el catálogo: $error';
+      });
+    } finally {
+      if (mounted) setState(() => _isLoadingCatalog = false);
+    }
+  }
+
+  Future<void> _enableNearby() async {
+    setState(() {
+      _isLoadingLocation = true;
+      _locationError = null;
+    });
+
+    try {
+      final serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!mounted) return;
+      if (!serviceEnabled) {
+        setState(() {
+          _locationError =
+              'Activa los servicios de ubicación para buscar por cercanía.';
+        });
+        return;
+      }
+
+      var permission = await Geolocator.checkPermission();
+      if (!mounted) return;
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+        if (!mounted) return;
+      }
+      if (permission == LocationPermission.denied) {
+        setState(() {
+          _locationError =
+              'Se denegó el permiso de ubicación. Puedes buscar por nombre '
+              'o categoría sin compartir tu ubicación.';
+        });
+        return;
+      }
+      if (permission == LocationPermission.deniedForever) {
+        setState(() {
+          _locationError =
+              'El permiso está bloqueado. Actívalo en la configuración del dispositivo.';
+        });
+        return;
+      }
+      if (permission != LocationPermission.whileInUse &&
+          permission != LocationPermission.always) {
+        setState(() {
+          _locationError =
+              'No se pudo confirmar el permiso de ubicación del dispositivo.';
+        });
+        return;
+      }
+
+      final position = await Geolocator.getCurrentPosition(
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.medium,
+          timeLimit: Duration(seconds: 20),
+        ),
+      );
+      if (!mounted) return;
+      setState(() {
+        _currentPosition = position;
+        _nearbyEnabled = true;
+      });
+    } on TimeoutException {
+      if (!mounted) return;
+      setState(() {
+        _locationError =
+            'No se obtuvo la ubicación a tiempo. Comprueba la señal GPS e inténtalo nuevamente.';
+      });
+    } on PlatformException catch (error) {
+      if (!mounted) return;
+      setState(() {
+        _locationError =
+            'No se pudo obtener la ubicación: ${error.message ?? error.code}';
+      });
+    } finally {
+      if (mounted) setState(() => _isLoadingLocation = false);
+    }
+  }
+
+  void _disableNearby() {
+    setState(() {
+      _nearbyEnabled = false;
+      _currentPosition = null;
+      _locationError = null;
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final normalizedQuery = query.toLowerCase();
-    final results = _pois.where((poi) {
+    final normalizedQuery = widget.query.trim().toLowerCase();
+    final catalog = _catalog;
+    final matchingPois = (catalog?.pois ?? const <Poi>[]).where((poi) {
       final matchesQuery =
           normalizedQuery.isEmpty ||
           poi.name.toLowerCase().contains(normalizedQuery) ||
           poi.location.toLowerCase().contains(normalizedQuery);
-      final matchesCategory = category == 'Todos' || poi.category == category;
+      final matchesCategory =
+          widget.category == 'Todos' || poi.category == widget.category;
       return matchesQuery && matchesCategory;
     }).toList();
+    final results = _nearbyEnabled && _currentPosition != null
+        ? filterPoisByProximity(
+            matchingPois,
+            latitude: _currentPosition!.latitude,
+            longitude: _currentPosition!.longitude,
+            radiusKm: _radiusKm,
+          )
+        : matchingPois;
+    final categories = ['Todos', ...?catalog?.categories];
+    final canUseLocation =
+        catalog != null && !_isLoadingCatalog && _catalogError == null;
 
     return CustomScrollView(
       slivers: [
@@ -616,18 +831,30 @@ class ExplorePage extends StatelessWidget {
             delegate: SliverChildListDelegate([
               Text('DESCUBRE A TU RITMO', style: _eyebrowStyle),
               const SizedBox(height: 7),
-              Text(
-                'Explorar Miculla',
-                style: Theme.of(context).textTheme.headlineLarge,
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      'Explorar Tacna',
+                      style: Theme.of(context).textTheme.headlineLarge,
+                    ),
+                  ),
+                  IconButton(
+                    key: const Key('refresh-catalog'),
+                    tooltip: 'Actualizar catálogo',
+                    onPressed: _isLoadingCatalog ? null : _loadCatalog,
+                    icon: const Icon(Icons.refresh_rounded, color: _clay),
+                  ),
+                ],
               ),
               const SizedBox(height: 18),
               TextField(
                 key: const Key('explore-search'),
-                controller: controller,
-                onChanged: onQueryChanged,
+                controller: widget.controller,
+                onChanged: widget.onQueryChanged,
                 textInputAction: TextInputAction.search,
                 decoration: InputDecoration(
-                  hintText: 'Busca un atractivo',
+                  hintText: 'Busca un punto de interés',
                   prefixIcon: const Icon(Icons.search_rounded, color: _clay),
                   filled: true,
                   fillColor: Colors.white,
@@ -646,19 +873,23 @@ class ExplorePage extends StatelessWidget {
                 height: 42,
                 child: ListView.separated(
                   scrollDirection: Axis.horizontal,
-                  itemCount: _categories.length,
+                  itemCount: categories.length,
                   separatorBuilder: (_, _) => const SizedBox(width: 8),
                   itemBuilder: (context, index) {
-                    final item = _categories[index];
+                    final item = categories[index];
                     return ChoiceChip(
                       label: Text(item),
-                      selected: category == item,
-                      onSelected: (_) => onCategoryChanged(item),
+                      selected: widget.category == item,
+                      onSelected: (_) => widget.onCategoryChanged(item),
                       selectedColor: _clay,
                       backgroundColor: Colors.white,
-                      side: BorderSide(color: category == item ? _clay : _line),
+                      side: BorderSide(
+                        color: widget.category == item ? _clay : _line,
+                      ),
                       labelStyle: TextStyle(
-                        color: category == item ? Colors.white : _charcoal,
+                        color: widget.category == item
+                            ? Colors.white
+                            : _charcoal,
                         fontWeight: FontWeight.w600,
                       ),
                     );
@@ -667,50 +898,153 @@ class ExplorePage extends StatelessWidget {
               ),
               const SizedBox(height: 10),
               OutlinedButton.icon(
-                onPressed: null,
-                icon: const Icon(Icons.near_me_outlined),
-                label: const Text('Filtrar por cercanía (GPS pendiente)'),
-              ),
-              const SizedBox(height: 20),
-              Text(
-                '${results.length} ${results.length == 1 ? 'atractivo' : 'atractivos'}',
-                style: const TextStyle(
-                  color: _muted,
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
+                key: const Key('nearby-filter'),
+                onPressed: _isLoadingLocation || !canUseLocation
+                    ? null
+                    : _nearbyEnabled
+                    ? _disableNearby
+                    : _enableNearby,
+                icon: _isLoadingLocation
+                    ? const SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : Icon(
+                        _nearbyEnabled
+                            ? Icons.location_off_outlined
+                            : Icons.near_me_outlined,
+                      ),
+                label: Text(
+                  _isLoadingLocation
+                      ? 'Obteniendo ubicación…'
+                      : _nearbyEnabled
+                      ? 'Quitar filtro de cercanía'
+                      : 'Buscar cerca de mí',
                 ),
               ),
-              const SizedBox(height: 5),
-              const Text(
-                'El filtro por cercanía estará disponible al conectar la ubicación GPS.',
-                style: TextStyle(color: _muted, fontSize: 11),
-              ),
-              const SizedBox(height: 10),
-              if (results.isEmpty)
-                const _EmptyState(
-                  icon: Icons.travel_explore_rounded,
-                  title: 'No encontramos resultados',
-                  message: 'Prueba otro nombre o cambia la categoría.',
-                )
-              else
-                ...results.map(
-                  (poi) => Padding(
-                    padding: const EdgeInsets.only(bottom: 11),
-                    child: _PoiListTile(poi: poi, onTap: () => onPoiTap(poi)),
+              if (_locationError != null) ...[
+                const SizedBox(height: 8),
+                Container(
+                  key: const Key('location-error'),
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFFE8DF),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Icon(
+                        Icons.location_disabled_outlined,
+                        color: _clayDark,
+                        size: 19,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          _locationError!,
+                          style: const TextStyle(
+                            color: _clayDark,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-              const SizedBox(height: 6),
-              const Text(
-                'Contenido de muestra · Próximamente conectado al catálogo turístico.',
-                textAlign: TextAlign.center,
-                style: TextStyle(color: _muted, fontSize: 11),
-              ),
+              ],
+              if (_nearbyEnabled) ...[
+                const SizedBox(height: 12),
+                Text(
+                  'Radio de búsqueda: ${_radiusKm.round()} km',
+                  style: const TextStyle(
+                    color: _charcoal,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                Slider(
+                  key: const Key('nearby-radius'),
+                  value: _radiusKm,
+                  min: 5,
+                  max: 100,
+                  divisions: 19,
+                  label: '${_radiusKm.round()} km',
+                  activeColor: _clay,
+                  onChanged: (value) => setState(() => _radiusKm = value),
+                ),
+              ],
+              const SizedBox(height: 16),
+              if (_isLoadingCatalog) ...[
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 28),
+                  child: Center(child: CircularProgressIndicator()),
+                ),
+              ] else if (_catalogError != null) ...[
+                _CatalogErrorState(
+                  message: _catalogError!,
+                  onRetry: widget.catalogRepository == null
+                      ? null
+                      : _loadCatalog,
+                ),
+              ] else ...[
+                Text(
+                  '${results.length} ${results.length == 1 ? 'punto de interés' : 'puntos de interés'}',
+                  style: const TextStyle(
+                    color: _muted,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 5),
+                Text(
+                  _nearbyEnabled
+                      ? 'Ordenados por distancia desde tu ubicación actual.'
+                      : 'El filtro de cercanía solo solicita ubicación al activarlo.',
+                  style: const TextStyle(color: _muted, fontSize: 11),
+                ),
+                const SizedBox(height: 10),
+                if (results.isEmpty)
+                  const _EmptyState(
+                    icon: Icons.travel_explore_rounded,
+                    title: 'No hay puntos de interés para mostrar',
+                    message:
+                        'Prueba otra búsqueda o categoría. El catálogo se '
+                        'actualiza desde Supabase.',
+                  )
+                else
+                  ...results.map(
+                    (poi) => Padding(
+                      padding: const EdgeInsets.only(bottom: 11),
+                      child: _PoiListTile(
+                        poi: poi,
+                        onTap: () => widget.onPoiTap(poi),
+                        distanceLabel: _nearbyEnabled
+                            ? _formatDistance(_distanceTo(poi))
+                            : null,
+                      ),
+                    ),
+                  ),
+                const SizedBox(height: 6),
+                const Text(
+                  'Catálogo público de TravelTac · datos cargados desde Supabase.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: _muted, fontSize: 11),
+                ),
+              ],
             ]),
           ),
         ),
       ],
     );
   }
+
+  double _distanceTo(Poi poi) => distanceToPoiKm(
+    poi,
+    latitude: _currentPosition!.latitude,
+    longitude: _currentPosition!.longitude,
+  );
 }
 
 class MapPage extends StatelessWidget {
@@ -729,12 +1063,12 @@ class MapPage extends StatelessWidget {
               Text('ORIENTACIÓN', style: _eyebrowStyle),
               const SizedBox(height: 7),
               Text(
-                'Mapa de Miculla',
+                'Mapa de Tacna',
                 style: Theme.of(context).textTheme.headlineLarge,
               ),
               const SizedBox(height: 7),
               const Text(
-                'Explora los atractivos y abre sus fichas desde el mapa.',
+                'Explora los puntos de interés y abre sus fichas desde el mapa.',
                 style: TextStyle(color: _muted, fontSize: 14),
               ),
               const SizedBox(height: 17),
@@ -1056,7 +1390,7 @@ class DownloadsPage extends StatelessWidget {
                   icon: Icons.cloud_download_outlined,
                   title: 'Aún no hay paquetes offline',
                   message:
-                      'Puedes probar el flujo con un atractivo de muestra.',
+                      'Puedes probar el flujo con un punto de interés de muestra.',
                 )
               else
                 ...downloadedPois.map(
@@ -1067,7 +1401,7 @@ class DownloadsPage extends StatelessWidget {
                 ),
               const SizedBox(height: 22),
               Text(
-                'Explora atractivos',
+                'Explora puntos de interés',
                 style: Theme.of(context).textTheme.titleLarge,
               ),
               const SizedBox(height: 11),
@@ -1167,7 +1501,7 @@ class _PreferencesPageState extends State<PreferencesPage> {
           children: [
             SwitchListTile(
               contentPadding: EdgeInsets.zero,
-              title: const Text('Avisar cerca de un atractivo'),
+              title: const Text('Avisar cerca de un puntos de interés'),
               subtitle: const Text(
                 'La detección GPS y las notificaciones aún no están conectadas.',
               ),
@@ -1292,6 +1626,51 @@ class _DemoDataNotice extends StatelessWidget {
   }
 }
 
+class _CatalogErrorState extends StatelessWidget {
+  const _CatalogErrorState({required this.message, required this.onRetry});
+
+  final String message;
+  final VoidCallback? onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      key: const Key('catalog-error'),
+      padding: const EdgeInsets.all(17),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFFE8DF),
+        borderRadius: BorderRadius.circular(17),
+        border: Border.all(color: _clay.withValues(alpha: 0.25)),
+      ),
+      child: Column(
+        children: [
+          const Icon(Icons.cloud_off_rounded, color: _clayDark, size: 30),
+          const SizedBox(height: 9),
+          const Text(
+            'No se pudo cargar el catálogo',
+            textAlign: TextAlign.center,
+            style: TextStyle(color: _clayDark, fontWeight: FontWeight.w700),
+          ),
+          const SizedBox(height: 7),
+          SelectableText(
+            message,
+            textAlign: TextAlign.center,
+            style: const TextStyle(color: _charcoal, fontSize: 12),
+          ),
+          if (onRetry != null) ...[
+            const SizedBox(height: 11),
+            OutlinedButton.icon(
+              onPressed: onRetry,
+              icon: const Icon(Icons.refresh_rounded),
+              label: const Text('Reintentar'),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
 class _EmptyState extends StatelessWidget {
   const _EmptyState({
     required this.icon,
@@ -1335,10 +1714,15 @@ class _EmptyState extends StatelessWidget {
 }
 
 class _PoiListTile extends StatelessWidget {
-  const _PoiListTile({required this.poi, required this.onTap});
+  const _PoiListTile({
+    required this.poi,
+    required this.onTap,
+    this.distanceLabel,
+  });
 
   final Poi poi;
   final VoidCallback onTap;
+  final String? distanceLabel;
 
   @override
   Widget build(BuildContext context) {
@@ -1397,6 +1781,17 @@ class _PoiListTile extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(color: _muted, fontSize: 11),
                     ),
+                    if (distanceLabel != null) ...[
+                      const SizedBox(height: 3),
+                      Text(
+                        distanceLabel!,
+                        style: const TextStyle(
+                          color: _clay,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ],
                   ],
                 ),
               ),
@@ -1472,7 +1867,7 @@ class _PoiDetailPageState extends State<PoiDetailPage> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: _sandLight,
-        title: const Text('Atractivo'),
+        title: const Text('Punto de interés'),
       ),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(22, 8, 22, 28),
@@ -1530,7 +1925,7 @@ class _PoiDetailPageState extends State<PoiDetailPage> {
                   const SizedBox(width: 10),
                   const Expanded(
                     child: Text(
-                      'No hay un archivo de audio conectado para este atractivo.',
+                      'No hay un archivo de audio conectado para este punto de interés.',
                       style: TextStyle(color: _muted, fontSize: 12),
                     ),
                   ),
@@ -1556,7 +1951,7 @@ class _PoiDetailPageState extends State<PoiDetailPage> {
             icon: Icons.download_rounded,
             children: [
               const Text(
-                'Paquete del atractivo: texto, imágenes y audioguía.',
+                'Paquete del punto de interés: texto, imágenes y audioguía.',
                 style: TextStyle(color: _muted),
               ),
               const SizedBox(height: 10),
@@ -1708,3 +2103,7 @@ IconData _categoryIcon(String category) => switch (category) {
   'Arquitectura' => Icons.church_rounded,
   _ => Icons.place_rounded,
 };
+
+String _formatDistance(double distanceKm) => distanceKm < 1
+    ? '${(distanceKm * 1000).round()} m de ti'
+    : '${distanceKm.toStringAsFixed(1)} km de ti';
