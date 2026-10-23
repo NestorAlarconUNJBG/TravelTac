@@ -4,6 +4,63 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:traveltac_mobile/main.dart';
 
 void main() {
+  test('proximity filter returns POIs within radius ordered by distance', () {
+    const near = Poi(
+      name: 'Cercano',
+      category: 'Historia',
+      location: 'Tacna',
+      description: '',
+      icon: Icons.place,
+      color: Colors.brown,
+      latitude: -18.014,
+      longitude: -70.253,
+    );
+    const far = Poi(
+      name: 'Lejano',
+      category: 'Historia',
+      location: 'Pachía',
+      description: '',
+      icon: Icons.place,
+      color: Colors.brown,
+      latitude: -17.941,
+      longitude: -70.112,
+    );
+    const originLatitude = -18.015;
+    const originLongitude = -70.254;
+
+    final sortedResults = filterPoisByProximity(
+      const [far, near],
+      latitude: originLatitude,
+      longitude: originLongitude,
+      radiusKm: 100,
+    );
+
+    expect(sortedResults, [near, far]);
+    expect(
+      filterPoisByProximity(
+        const [far, near],
+        latitude: originLatitude,
+        longitude: originLongitude,
+        radiusKm: 2,
+      ),
+      [near],
+    );
+    expect(
+      distanceToPoiKm(
+        near,
+        latitude: originLatitude,
+        longitude: originLongitude,
+      ),
+      lessThan(
+        distanceToPoiKm(
+          far,
+          latitude: originLatitude,
+          longitude: originLongitude,
+        ),
+      ),
+    );
+  });
+
   testWidgets('home opens the explore tab and filters sample POIs', (
     WidgetTester tester,
   ) async {
